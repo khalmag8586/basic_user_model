@@ -9,6 +9,7 @@ urlpatterns = [
 ]
 urlpatterns += i18n_patterns(
     path("admin/", admin.site.urls),
+    path('api/project_setup/',include('apps.project_setup.urls')),
     path("api/users/", include("user.urls")),
     path("api/permissions/", include("apps.permissions_api.urls")),
     path("api/category/", include("apps.category.urls")),

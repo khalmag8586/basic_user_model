@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "apps.category",
     "apps.event",
     "apps.table",
+    "apps.project_setup",
 ]
 
 

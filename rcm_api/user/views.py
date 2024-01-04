@@ -26,6 +26,7 @@ from user.models import (
 from user.serializers import (
     UserSerializer,
     UserImageSerializer,
+    UserCoverSerializer,
     UserDeleteSerializer,
     UserDialogSerializer,
     UserGenderChoiceSerializer,
@@ -94,6 +95,40 @@ class UploadUserPhotoView(generics.UpdateAPIView):
             serializer.save()
             return Response(
                 {"detail": _("Your photo changed successfully")},
+                status=status.HTTP_200_OK,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UploadUserCoverView(generics.UpdateAPIView):
+    serializer_class = UserCoverSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        self.action = self.request.method.lower()
+
+    @action(methods=["POST"], detail=True, url_path="upload-image")
+    def upload_image(self, request, pk=None):
+        user = self.request.user
+        serializer = self.get_serializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_serializer_class(self):
+        if self.action == "upload_image":
+            return UserImageSerializer
+        return self.serializer_class
+
+    def update(self, request, *args, **kwargs):
+        user = self.request.user  # Get the user from the JWT token
+        serializer = self.get_serializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"detail": _("Your cover photo changed successfully")},
                 status=status.HTTP_200_OK,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

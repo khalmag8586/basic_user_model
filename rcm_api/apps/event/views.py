@@ -108,3 +108,10 @@ class EventDeleteView(generics.DestroyAPIView):
             {"detail": _("Event permanently deleted successfully")},
             status=status.HTTP_204_NO_CONTENT,
         )
+
+
+class EventDialogView(generics.ListAPIView):
+    serializer_class = EventDialogSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    queryset = Event.objects.all()

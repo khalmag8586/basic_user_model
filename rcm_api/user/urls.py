@@ -2,6 +2,7 @@ from django.urls import path
 from user.views import (
     CreateUserView,
     UploadUserPhotoView,
+    UploadUserCoverView,
     UserListView,
     UserRetrieveView,
     ManagerUserView,
@@ -21,6 +22,7 @@ urlpatterns = [
     path("create_user/", CreateUserView.as_view(), name="create-user"),
     path("login/", LoginView.as_view(), name="login"),
     path("upload_photo/", UploadUserPhotoView.as_view(), name="upload-photo"),
+    path("upload_cover/", UploadUserCoverView.as_view(), name="upload-cover"),
     path("me/", ManagerUserView.as_view(), name="me"),
     path("user_list/", UserListView.as_view(), name="user-list"),
     path("user_deleted_list/", DeletedUserView.as_view(), name="user-deleted-list"),

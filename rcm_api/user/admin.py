@@ -35,8 +35,8 @@ class UserAdmin(BaseUserAdmin):
                     "password2",
                     "name",
                     "name_ar",
-                    "created_at",
-                    "updated_at",
+                    # "created_at",
+                    # "updated_at",
                     "identification",
                     "birthdate",
                     "role",
@@ -57,4 +57,6 @@ class UserAdmin(BaseUserAdmin):
             },
         ),
     )
+
+
 admin.site.register(User, UserAdmin)

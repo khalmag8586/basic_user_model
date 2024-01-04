@@ -5,6 +5,7 @@ from apps.event.views import (
     EventRetrieveView,
     EventUpdateView,
     EventDeleteView,
+    EventDialogView,
 )
 
 app_name = "event"
@@ -15,4 +16,5 @@ urlpatterns = [
     path("event_retrieve/", EventRetrieveView.as_view(), name="event-retrieve"),
     path("event_update/", EventUpdateView.as_view(), name="event-update"),
     path("event_delete/", EventDeleteView.as_view(), name="event-delete"),
+    path("event_dialog/", EventDialogView.as_view(), name="event-dialog"),
 ]

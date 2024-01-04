@@ -1,9 +1,14 @@
 from django.db import models, IntegrityError
 from django.db.models import Q, UniqueConstraint
 from django.conf import settings
+from django.core.files.base import ContentFile
 
 import uuid
 import os
+from PIL import Image
+from io import BytesIO
+
+
 
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -12,6 +17,7 @@ from django.contrib.auth.models import (
 )
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
+
 
 def default_photo_file_path(instance, filename):
     ext = os.path.splitext(filename)[1]
@@ -68,21 +74,21 @@ class UserManager(BaseUserManager):
         return user
 
 
-
 class User(AbstractBaseUser, PermissionsMixin):
     class Role(models.TextChoices):
         SUPERUSER = "SUPERUSER", _("SuperUser")
         OWNER = "OWNER", _("Owner")
-        MANAGER='MANAGER',_('Manager')
-        WAITER='WAITER',_('waiter')
+        MANAGER = "MANAGER", _("Manager")
+        WAITER = "WAITER", _("waiter")
         CASHIER = "CASHIER", _("Cashier")
-        CHEF='CHEF',_('Chef')
-        DELIVERY='DELIVERY',_('Delivery')
+        CHEF = "CHEF", _("Chef")
+        DELIVERY = "DELIVERY", _("Delivery")
 
     GENDER_CHOICES = [("male", _("Male")), ("female", _("Female"))]
 
     mobile_num_regex = RegexValidator(
-        regex="^[0-9]{10,11}$", message=_("Entered mobile number isn't in a right format!")
+        regex="^[0-9]{10,11}$",
+        message=_("Entered mobile number isn't in a right format!"),
     )
     id_regex = RegexValidator(
         regex="^[0-9]{15}$", message=_("Entered ID number isn't in a right format!")
@@ -130,6 +136,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         null=True,
         upload_to=user_photo_file_path,
     )
+    avatar = models.ImageField(blank=True, null=True, upload_to=user_photo_file_path)
+    cover = models.ImageField(blank=True, null=True, upload_to=user_photo_file_path)
 
     # user's bank info
     bank_name = models.CharField(max_length=255, blank=True, null=True)
@@ -144,6 +152,30 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = "email"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        # Resize and save the avatar image
+        if self.photo and not self.avatar:
+            self.resize_and_save_avatar()
+
+    def resize_and_save_avatar(self):
+        # Check if the photo field is not empty
+        if self.photo:
+            photo_path = self.photo.path
+
+            # Check if the avatar field is not already set
+            if not self.avatar:
+                # Open the image using Pillow
+                with Image.open(photo_path) as img:
+                    # Resize the image (adjust the size as needed)
+                    resized_img = img.resize((300, 300))
+
+                    # Save the resized image as the avatar
+                    buffer = BytesIO()
+                    resized_img.save(buffer, format="PNG")
+                    self.avatar.save("avatar.png", ContentFile(buffer.getvalue()), save=True)
 
     class Meta:
         def __str__(self):

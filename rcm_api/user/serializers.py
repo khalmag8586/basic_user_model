@@ -34,6 +34,7 @@ class UserSerializer(serializers.ModelSerializer):
             "name",
             "name_ar",
             "created_at",
+            "updated_at",
             "nationality",
             "passport",
             "identification",
@@ -49,6 +50,8 @@ class UserSerializer(serializers.ModelSerializer):
             "bank_account_name",
             "bank_account_number",
             "photo",
+            "avatar",
+            "cover",
             "groups",
             "user_permissions",
             "is_staff",
@@ -63,19 +66,23 @@ class UserSerializer(serializers.ModelSerializer):
                 "validators": [
                     validate_password,
                     RegexValidator(
-                        regex='[A-Z]',
-                        message=_('Password must contain at least one uppercase letter.'),
-                        code='password_no_upper',
+                        regex="[A-Z]",
+                        message=_(
+                            "Password must contain at least one uppercase letter."
+                        ),
+                        code="password_no_upper",
                     ),
                     RegexValidator(
-                        regex='[a-z]',
-                        message=_('Password must contain at least one lowercase letter.'),
-                        code='password_no_lower',
+                        regex="[a-z]",
+                        message=_(
+                            "Password must contain at least one lowercase letter."
+                        ),
+                        code="password_no_lower",
                     ),
                     RegexValidator(
-                        regex='[0-9]',
-                        message=_('Password must contain at least one digit.'),
-                        code='password_no_digit',
+                        regex="[0-9]",
+                        message=_("Password must contain at least one digit."),
+                        code="password_no_digit",
                     ),
                     # RegexValidator(
                     #     regex='[!@#$%^&*(),.?":{}|<>]',
@@ -84,9 +91,8 @@ class UserSerializer(serializers.ModelSerializer):
                     # ),
                 ],
             },
-            "photo": {
-                "default": "default_photos/default.jpg"
-            },  # Set a default photo file name
+            "photo": {"default": "default_photos/default.jpg"},
+            "cover": {"default": "default_photos/default_cover.jpg"},
         }
 
     def __init__(self, *args, **kwargs):
@@ -124,6 +130,14 @@ class UserImageSerializer(serializers.ModelSerializer):
         fields = ["user_id", "photo"]
         read_only_fields = ["user_id"]
         extra_kwargs = {"photo": {"required": "True"}}
+
+
+class UserCoverSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["user_id", "cover"]
+        read_only_fields = ["user_id"]
+        extra_kwargs = {"cover": {"required": "True"}}
 
 
 class AuthTokenSerializer(serializers.Serializer):
