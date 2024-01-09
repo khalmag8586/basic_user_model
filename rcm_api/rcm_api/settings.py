@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "corsheaders",
     "django_filters",
+    "djoser",
     "user",
     "apps.permissions_api",
     "apps.category",
@@ -56,6 +57,34 @@ INSTALLED_APPS = [
     "apps.project_setup",
 ]
 
+
+# email settings for mailhog
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "127.0.0.1"
+EMAIL_PORT = 1025
+EMAIL_HOST_USER = ""
+EMAIL_HOST_PASSWORD = ""
+EMAIL_USE_TLS = False
+
+
+# djoser settings
+DJOSER = {
+    "PASSWORD_RESET_CONFIRM_URL": "#/password/reset/confirm/{uid}/{token}",
+    "SET_PASSWORD_RETYPE ":True,
+    "ACTIVATION_URL": "#/activate/{uid}/{token}",
+    "SEND_CONFIRMATION_EMAIL": True,
+    "SEND_ACTIVATION_EMAIL": True,
+    "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
+    "LOGOUT_ON_PASSWORD_CHANGE": True,
+    "TOKEN_MODEL": None,
+    "SERIALIZERS": {"user_create": "user.serializers.UserSerializer"},
+    "EMAIL": {
+        "activation": "djoser.email.ActivationEmail",
+        "confirmation": "djoser.email.ConfirmationEmail",
+        "password_reset": "djoser.email.PasswordResetEmail",
+        "password_changed_confirmation": "djoser.email.PasswordChangedConfirmationEmail",
+    },
+}
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
