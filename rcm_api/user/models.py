@@ -9,7 +9,6 @@ from PIL import Image
 from io import BytesIO
 
 
-
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -94,7 +93,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         regex="^[0-9]{15}$", message=_("Entered ID number isn't in a right format!")
     )
     # user personal info
-    user_id = models.UUIDField(
+
+    id = models.UUIDField(
         default=uuid.uuid4,
         editable=False,
         unique=True,
@@ -155,10 +155,51 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+        # Check if the photo exists and its size exceeds the maximum allowed size
+        if self.photo:
+            photo_size = self.photo.size  # Size in bytes
+            max_size_bytes = 1024 * 1024  # 1 MB
 
+            if photo_size > max_size_bytes:
+                # Resize the photo
+                self.resize_photo()
         # Resize and save the avatar image
         if self.photo and not self.avatar:
             self.resize_and_save_avatar()
+        # Check if the photo field has been updated
+        if self.photo != self._meta.model.objects.get(pk=self.pk).photo:
+            self.resize_and_save_avatar()
+        # super().save(*args, **kwargs)
+
+    def resize_photo(self):
+        # Set the maximum size in bytes (1 MB = 1024 * 1024 bytes)
+        max_size_bytes = 1024 * 1024
+
+        # Open the image using Pillow
+        with Image.open(self.photo.path) as img:
+            # Check the size of the image in bytes
+            img_byte_array = BytesIO()
+            img.save(img_byte_array, format=img.format)
+            img_size_bytes = img_byte_array.tell()
+
+            # If the image size exceeds the maximum size, resize it
+            if img_size_bytes > max_size_bytes:
+                # Calculate the scaling factor to resize the image
+                scaling_factor = (max_size_bytes / img_size_bytes) ** 0.5
+                new_width = int(img.width * scaling_factor)
+                new_height = int(img.height * scaling_factor)
+
+                # Resize the image
+                resized_img = img.resize((new_width, new_height))
+
+                # Save the resized image back to the photo field
+                buffer = BytesIO()
+                resized_img.save(buffer, format=img.format)
+                self.photo.save(
+                    os.path.basename(self.photo.name),
+                    ContentFile(buffer.getvalue()),
+                    save=True,
+                )
 
     def resize_and_save_avatar(self):
         # Check if the photo field is not empty
@@ -175,9 +216,10 @@ class User(AbstractBaseUser, PermissionsMixin):
                     # Save the resized image as the avatar
                     buffer = BytesIO()
                     resized_img.save(buffer, format="PNG")
-                    self.avatar.save("avatar.png", ContentFile(buffer.getvalue()), save=True)
+                    self.avatar.save(
+                        "avatar.png", ContentFile(buffer.getvalue()), save=True
+                    )
 
     class Meta:
         def __str__(self):
             return self.email
-

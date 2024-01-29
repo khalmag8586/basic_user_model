@@ -130,11 +130,11 @@ class ThemeListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Theme.objects.all()
 
-    def list(self, request, *args, **kwargs):
-        user = self.request.user
-        if user.role != "SUPERUSER":
-            raise PermissionDenied(_("You don't have permission to view  themes."))
-        return super().list(request, *args, **kwargs)
+    # def list(self, request, *args, **kwargs):
+    #     user = self.request.user
+    #     if user.role != "SUPERUSER":
+    #         raise PermissionDenied(_("You don't have permission to view  themes."))
+    #     return super().list(request, *args, **kwargs)
 
 
 class ThemeUpdateView(generics.UpdateAPIView):

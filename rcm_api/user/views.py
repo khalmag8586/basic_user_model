@@ -1,7 +1,9 @@
+from django.http import Http404  # added by me
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -65,6 +67,42 @@ class CreateUserView(generics.CreateAPIView):
         )
 
 
+
+
+# class UploadUserPhotoView(generics.UpdateAPIView):
+#     serializer_class = UserImageSerializer
+#     authentication_classes = [JWTAuthentication]
+#     permission_classes = [IsAuthenticated]
+#     lookup_field = "id"  # Set the lookup field to 'id'
+
+#     def get_queryset(self):
+#         return get_user_model().objects.all()
+
+#     def get_object(self):
+#         user_id = self.request.query_params.get("user_id")
+#         try:
+#             user = User.objects.get(id=user_id)
+#             self.check_object_permissions(self.request, user)
+#             return user
+#         except User.DoesNotExist:
+#             raise Http404(_("User not found."))
+
+#     def update(self, request, *args, **kwargs):
+#         partial = kwargs.pop("partial", False)
+#         instance = self.get_object()
+#         serializer = self.get_serializer(instance, data=request.data, partial=partial)
+#         serializer.is_valid(raise_exception=True)
+#         self.perform_update(serializer)
+#         # return Response(serializer.data)
+#         return Response(
+#             {"detail": _("Your photo changed successfully")},
+#             status=status.HTTP_200_OK,
+#         )
+
+#     def get_serializer_class(self):
+#         return self.serializer_class
+
+
 class UploadUserPhotoView(generics.UpdateAPIView):
     serializer_class = UserImageSerializer
     authentication_classes = [JWTAuthentication]
@@ -98,6 +136,7 @@ class UploadUserPhotoView(generics.UpdateAPIView):
                 status=status.HTTP_200_OK,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class UploadUserCoverView(generics.UpdateAPIView):
     serializer_class = UserCoverSerializer
@@ -143,8 +182,15 @@ class ManagerUserView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
     def update(self, request, *args, **kwargs):
+        allowed_roles = ["OWNER", "SUPERUSER", "MANAGER"]
+
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
+        if instance.role not in allowed_roles:
+            return Response(
+                {"detail": _("You are not authorized to change the role.")},
+                status=status.HTTP_403_FORBIDDEN
+            )
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
@@ -171,7 +217,7 @@ class UserListView(generics.ListAPIView):
         if user.role not in allowed_roles:
             raise PermissionDenied(_("You don't have permission to view users."))
 
-        queryset = User.objects.filter(is_deleted=False)
+        queryset = User.objects.filter(is_deleted=False, is_superuser=False)
         return queryset
 
 
@@ -202,14 +248,14 @@ class UserRetrieveView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    lookup_field = "user_id"
+    lookup_field = "id"
 
     def get_queryset(self):
         return User.objects.filter(is_deleted=False)
 
     def get_object(self):
         user_id = self.request.query_params.get("user_id")
-        user = get_object_or_404(self.get_queryset(), user_id=user_id)
+        user = get_object_or_404(self.get_queryset(), id=user_id)
         return user
 
 
@@ -217,11 +263,11 @@ class UserDeleteTemporaryView(generics.RetrieveUpdateAPIView):
     serializer_class = UserDeleteSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    lookup_field = "user_id"
+    lookup_field = "id"
 
     def get_object(self):
         user_id = self.request.query_params.get("user_id")
-        user = get_object_or_404(User, user_id=user_id)
+        user = get_object_or_404(User, id=user_id)
         return user
 
     def update(self, request, *args, **kwargs):
@@ -252,11 +298,11 @@ class UserRestoreView(generics.RetrieveUpdateAPIView):
     serializer_class = UserDeleteSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    lookup_field = "user_id"
+    lookup_field = "id"
 
     def get_object(self):
         user_id = self.request.query_params.get("user_id")
-        user = get_object_or_404(User, user_id=user_id)
+        user = get_object_or_404(User, id=user_id)
         return user
 
     def update(self, request, *args, **kwargs):
@@ -287,11 +333,11 @@ class UserUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    lookup_field = "user_id"
+    lookup_field = "id"
 
     def get_object(self):
         user_id = self.request.query_params.get("user_id")
-        user = get_object_or_404(User, user_id=user_id)
+        user = get_object_or_404(User, id=user_id)
         return user
 
     def update(self, request, *args, **kwargs):
@@ -315,11 +361,11 @@ class UserUpdateView(generics.RetrieveUpdateAPIView):
 # class UserDeleteView(generics.RetrieveDestroyAPIView):
 #     authentication_classes = [JWTAuthentication]
 #     permission_classes = [IsAuthenticated]
-#     lookup_field = "user_id"  # Change this to the field used for the primary key
+#     lookup_field = "id"  # Change this to the field used for the primary key
 
 # def get_object(self):
 #     user_id = self.request.query_params.get("user_id")
-#     user = get_object_or_404(User, user_id=user_id)
+#     user = get_object_or_404(User, id=user_id)
 #     return user
 
 # def delete(self, request, *args, **kwargs):
@@ -356,7 +402,7 @@ class UserUpdateView(generics.RetrieveUpdateAPIView):
 #             except ValueError:
 #                 raise ValidationError(_("'{}' is not a valid UUID.".format(uid)))
 
-#         users = User.objects.filter(user_id__in=user_id_list)
+#         users = User.objects.filter(id__in=user_id_list)
 #         if not users.exists():
 #             return Response(
 #                 {"detail": _("No users found")},
@@ -370,6 +416,7 @@ class UserUpdateView(generics.RetrieveUpdateAPIView):
 #             status=status.HTTP_204_NO_CONTENT,
 #         )
 from rest_framework.parsers import JSONParser
+
 
 class UserDeleteView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -397,7 +444,7 @@ class UserDeleteView(APIView):
             except ValueError:
                 raise ValidationError(_("'{}' is not a valid UUID.".format(uid)))
 
-        users = User.objects.filter(user_id__in=user_id_list)
+        users = User.objects.filter(id__in=user_id_list)
         if not users.exists():
             return Response(
                 {"detail": _("No users found")},
@@ -410,6 +457,7 @@ class UserDeleteView(APIView):
             {"detail": _("Users permanently deleted successfully")},
             status=status.HTTP_204_NO_CONTENT,
         )
+
 
 # User login view
 class LoginView(APIView):
@@ -490,7 +538,7 @@ class UserRoleDialogView(generics.ListAPIView):
         role_choices = [
             {"value": "OWNER", "display": _("Owner")},
             {"value": "MANAGER", "display": _("Manager")},
-            {"value": "WAITER", "display": _("waiter")},
+            {"value": "WAITER", "display": _("Waiter")},
             {"value": "CASHIER", "display": _("Cashier")},
             {"value": "CHEF", "display": _("Chef")},
             {"value": "DELIVERY", "display": _("Delivery")},

@@ -1,1 +1,11 @@
+# Ignore virtual environment
 env/
+
+# Ignore Django migration files
+**/migrations/
+*.pyc
+*.pyo
+__pycache__/
+
+# Ignore the gitignore file itself
+.gitignore

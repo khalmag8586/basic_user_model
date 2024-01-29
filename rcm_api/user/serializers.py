@@ -24,17 +24,21 @@ class PermissionSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     groups = GroupSerializer(many=True, read_only=True)
     user_permissions = PermissionSerializer(many=True, read_only=True)
+    created_at_formatted = serializers.SerializerMethodField()
+    updated_at_formatted = serializers.SerializerMethodField()
 
     class Meta:
         model = get_user_model()
         fields = [
-            "user_id",
+            "id",
             "email",
             "password",
             "name",
             "name_ar",
             "created_at",
+            "created_at_formatted",
             "updated_at",
+            "updated_at_formatted",
             "nationality",
             "passport",
             "identification",
@@ -57,7 +61,7 @@ class UserSerializer(serializers.ModelSerializer):
             "is_staff",
             "is_active",
         ]
-        read_only_fields = ["user_id"]
+        read_only_fields = ["id"]
         extra_kwargs = {
             # "password": {"write_only": True, "min_length": 8},
             "password": {
@@ -117,6 +121,12 @@ class UserSerializer(serializers.ModelSerializer):
 
         return user
 
+    def get_created_at_formatted(self, obj):
+        return obj.created_at.strftime("%Y-%m-%d")
+
+    def get_updated_at_formatted(self, obj):
+        return obj.updated_at.strftime("%Y-%m-%d")
+
 
 class UserDeleteSerializer(serializers.ModelSerializer):
     class Meta:
@@ -127,16 +137,16 @@ class UserDeleteSerializer(serializers.ModelSerializer):
 class UserImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["user_id", "photo"]
-        read_only_fields = ["user_id"]
+        fields = ["id", "photo"]
+        read_only_fields = ["id"]
         extra_kwargs = {"photo": {"required": "True"}}
 
 
 class UserCoverSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["user_id", "cover"]
-        read_only_fields = ["user_id"]
+        fields = ["id", "cover"]
+        read_only_fields = ["id"]
         extra_kwargs = {"cover": {"required": "True"}}
 
 
@@ -178,7 +188,7 @@ class AuthTokenSerializer(serializers.Serializer):
 class UserDialogSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["user_id", "name", "name_ar"]
+        fields = ["id", "name", "name_ar"]
 
 
 class UserGenderChoiceSerializer(serializers.Serializer):
