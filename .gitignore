@@ -9,3 +9,6 @@ __pycache__/
 
 # Ignore the gitignore file itself
 .gitignore
+
+# Ignore uploads folder
+media/uploads/
