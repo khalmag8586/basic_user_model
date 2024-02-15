@@ -15,6 +15,7 @@ import os
 from datetime import datetime, timedelta
 from django.conf import settings
 import environ
+from django.utils.translation import gettext_lazy as _
 
 env = environ.Env()
 environ.Env.read_env()
@@ -32,7 +33,7 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -65,25 +66,37 @@ EMAIL_PORT = 1025
 EMAIL_HOST_USER = ""
 EMAIL_HOST_PASSWORD = ""
 EMAIL_USE_TLS = False
-
+# email settings for pythonAnywhere
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_HOST = "smtp.mail.eu.pythonanywhere.com"
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = "khalmag4"
+# EMAIL_HOST_PASSWORD = "khal_mac2023"
+# EMAIL_USE_TLS = True
 
 # djoser settings
 DJOSER = {
     "PASSWORD_RESET_CONFIRM_URL": "#/password/reset/confirm/{uid}/{token}",
-    "SET_PASSWORD_RETYPE ":True,
+    "SET_PASSWORD_RETYPE ": True,
     "ACTIVATION_URL": "#/activate/{uid}/{token}",
     "SEND_CONFIRMATION_EMAIL": True,
     "SEND_ACTIVATION_EMAIL": True,
-    "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
+    # "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
     "LOGOUT_ON_PASSWORD_CHANGE": True,
     "TOKEN_MODEL": None,
-    "SERIALIZERS": {"user_create": "user.serializers.UserSerializer"},
+    "SERIALIZERS": {
+        "user_create": "user.serializers.UserSerializer",
+        # "token_create": "djoser.serializers.TokenCreateSerializer",
+    },
     "EMAIL": {
         "activation": "djoser.email.ActivationEmail",
         "confirmation": "djoser.email.ConfirmationEmail",
         "password_reset": "djoser.email.PasswordResetEmail",
         "password_changed_confirmation": "djoser.email.PasswordChangedConfirmationEmail",
     },
+#     "CONSTANTS": {
+#         "detail":  "rcm_api.custom_messages.CustomChangePasswordMessages"
+#     },
 }
 
 REST_FRAMEWORK = {

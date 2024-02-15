@@ -153,6 +153,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = "email"
 
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         # Check if the photo exists and its size exceeds the maximum allowed size
@@ -163,13 +164,12 @@ class User(AbstractBaseUser, PermissionsMixin):
             if photo_size > max_size_bytes:
                 # Resize the photo
                 self.resize_photo()
-        # Resize and save the avatar image
-        if self.photo and not self.avatar:
-            self.resize_and_save_avatar()
-        # Check if the photo field has been updated
-        if self.photo != self._meta.model.objects.get(pk=self.pk).photo:
-            self.resize_and_save_avatar()
-        # super().save(*args, **kwargs)
+                
+            # Resize and save the avatar image
+            if not self.avatar:
+                self.resize_and_save_avatar()
+
+
 
     def resize_photo(self):
         # Set the maximum size in bytes (1 MB = 1024 * 1024 bytes)
@@ -207,18 +207,16 @@ class User(AbstractBaseUser, PermissionsMixin):
             photo_path = self.photo.path
 
             # Check if the avatar field is not already set
-            if not self.avatar:
-                # Open the image using Pillow
-                with Image.open(photo_path) as img:
-                    # Resize the image (adjust the size as needed)
-                    resized_img = img.resize((300, 300))
+            # if not self.avatar:
+            # Open the image using Pillow
+        with Image.open(photo_path) as img:
+            # Resize the image (adjust the size as needed)
+            resized_img = img.resize((300, 300))
 
-                    # Save the resized image as the avatar
-                    buffer = BytesIO()
-                    resized_img.save(buffer, format="PNG")
-                    self.avatar.save(
-                        "avatar.png", ContentFile(buffer.getvalue()), save=True
-                    )
+            # Save the resized image as the avatar
+            buffer = BytesIO()
+            resized_img.save(buffer, format="PNG")
+            self.avatar.save("avatar.png", ContentFile(buffer.getvalue()), save=True)
 
     class Meta:
         def __str__(self):

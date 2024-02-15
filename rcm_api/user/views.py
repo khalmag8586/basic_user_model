@@ -131,6 +131,7 @@ class UploadUserPhotoView(generics.UpdateAPIView):
         serializer = self.get_serializer(user, data=request.data)
         if serializer.is_valid():
             serializer.save()
+            user.resize_and_save_avatar()
             return Response(
                 {"detail": _("Your photo changed successfully")},
                 status=status.HTTP_200_OK,
