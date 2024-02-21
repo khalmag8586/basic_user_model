@@ -14,10 +14,10 @@ urlpatterns += i18n_patterns(
     # path("auth/", include("djoser.urls.jwt")),
     # path("auth/", include("djoser.urls.authtoken")),
     path("api/users/", include("user.urls")),
-    path("api/permissions/", include("apps.permissions_api.urls")),
-    path("api/category/", include("apps.category.urls")),
-    path("api/event/", include("apps.event.urls")),
-    path("api/table/", include("apps.table.urls")),
+    # path("api/permissions/", include("apps.permissions_api.urls")),
+    # path("api/category/", include("apps.category.urls")),
+    # path("api/event/", include("apps.event.urls")),
+    # path("api/table/", include("apps.table.urls")),
 
 )
 

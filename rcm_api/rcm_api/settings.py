@@ -51,11 +51,11 @@ INSTALLED_APPS = [
     "django_filters",
     "djoser",
     "user",
-    "apps.permissions_api",
-    "apps.category",
-    "apps.event",
-    "apps.table",
-    "apps.project_setup",
+    # "apps.permissions_api",
+    # "apps.category",
+    # "apps.event",
+    # "apps.table",
+    # "apps.project_setup",
 ]
 
 
