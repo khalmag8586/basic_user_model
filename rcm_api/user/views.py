@@ -67,8 +67,6 @@ class CreateUserView(generics.CreateAPIView):
         )
 
 
-
-
 # class UploadUserPhotoView(generics.UpdateAPIView):
 #     serializer_class = UserImageSerializer
 #     authentication_classes = [JWTAuthentication]
@@ -190,7 +188,7 @@ class ManagerUserView(generics.RetrieveUpdateAPIView):
         if instance.role not in allowed_roles:
             return Response(
                 {"detail": _("You are not authorized to change the role.")},
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_403_FORBIDDEN,
             )
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
@@ -493,11 +491,17 @@ class LoginView(APIView):
 
         refresh = RefreshToken.for_user(user)
         response = Response()
+        # Extract group names and convert them to a list of strings
+        group_names = list(user.groups.values_list("name", flat=True))
+        user_permissions_names = list(user.user_permissions.values_list("codename", flat=True))
+
         response.data = {
-            "identifier": user.email
-            if user.email == identifier
-            else user.mobile_number,
+            "identifier": (
+                user.email if user.email == identifier else user.mobile_number
+            ),
             "role": user.role,
+            "groups": group_names,
+            "user_permissions":user_permissions_names,
             "name": user.name,
             "is_staff": user.is_staff,
             "access_token": str(refresh.access_token),

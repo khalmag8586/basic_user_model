@@ -2,6 +2,9 @@ from django.db import models, IntegrityError
 from django.db.models import Q, UniqueConstraint
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import Group
 
 import uuid
 import os
@@ -164,7 +167,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             if photo_size > max_size_bytes:
                 # Resize the photo
                 self.resize_photo()
-                
+
             # Resize and save the avatar image
             if not self.avatar:
                 self.resize_and_save_avatar()
@@ -221,3 +224,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         def __str__(self):
             return self.email
+
+@receiver(post_save, sender=User)
+def create_user_groups(sender, instance, created, **kwargs):
+    if created:
+        # Check if the user is an owner or manager
+        if instance.role in [User.Role.OWNER, User.Role.MANAGER]:
+            # Add the user to the 'admins' group
+            admin_group, created = Group.objects.get_or_create(name='admins')
+            instance.groups.add(admin_group)
+        else:
+            # Create or get the 'normal' group and add the user to it
+            normal_group, created = Group.objects.get_or_create(name='normal')
+            instance.groups.add(normal_group)
+
